@@ -5,11 +5,8 @@
 
 namespace Microsoft.Oryx.BuildScriptGenerator
 {
-    public static class Constants
+    public static class ManifestFilePropertyKeys
     {
-        public const string OryxEnvironmentSettingNamePrefix = "ORYX_";
-        public const string BuildEnvironmentFileName = "build.env";
-        public const string ManifestFileName = "oryx-manifest.toml";
-        public const string ZipAllOutputBuildPropertyKey = "zip_all_output";
+        public const string ZipAllOutput = "zipAllOutput";
     }
 }

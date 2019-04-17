@@ -7,7 +7,9 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
+	"path/filepath"
 	"startupscriptgenerator/common"
 )
 
@@ -19,6 +21,10 @@ func main() {
 		".",
 		"The path to the published output of the application that is going to be run, e.g. '/home/site/wwwroot/'. " +
 		"Default is current directory.")
+	runFromPathPtr := flag.String(
+		"runFromPath",
+		"",
+		"The path to the directory where the output is copied and run from there.")
 	sourcePathPtr := flag.String(
 		"sourcePath",
 		"",
@@ -44,6 +50,11 @@ func main() {
 
 	common.SetGlobalOperationId(fullAppPath)
 
+	fullRunFromPath := ""
+	if *runFromPathPtr != "" {
+		fullRunFromPath, _ = filepath.Abs(*runFromPathPtr)
+	}
+
 	fullSourcePath := ""
 	if *sourcePathPtr != "" {
 		fullSourcePath = common.GetValidatedFullPath(*sourcePathPtr)
@@ -52,6 +63,18 @@ func main() {
 	fullDefaultAppFilePath := ""
 	if *defaultAppFilePathPtr != "" {
 		fullDefaultAppFilePath = common.GetValidatedFullPath(*defaultAppFilePathPtr)
+	}
+
+	if fullRunFromPath != "" {
+		fmt.Println("Intermediate directory option was specified, so copying content...")
+		common.CopyToDir(fullAppPath, fullRunFromPath)
+		fullAppPath = fullRunFromPath
+	}
+
+	buildManifest := common.GetBuildManifest(fullAppPath)
+	if buildManifest.ZipAllOutput == "true" {
+		fmt.Println("Read build manifest file and found output has been zipped. Extracting it...")
+		common.ExtractZippedOutput(fullAppPath)
 	}
 
 	entrypointGenerator := DotnetCoreStartupScriptGenerator{
