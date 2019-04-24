@@ -3,7 +3,6 @@
 // Licensed under the MIT license.
 // --------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -16,10 +15,7 @@ namespace Microsoft.Oryx.BuildScriptGenerator.DotNetCore
     /// <summary>
     /// .NET Core platform.
     /// </summary>
-    [BuildProperty(
-        Constants.ZipAllOutputBuildPropertyKey,
-        "Zips entire output content and puts the file in the destination directory." +
-        "Options are 'true', blank (same meaning as 'true'), and 'false'. Default is false.")]
+    [BuildProperty(Constants.ZipAllOutputBuildPropertyKey, Constants.ZipAllOutputBuildPropertyKeyDocumentation)]
     internal class DotnetCorePlatform : IProgrammingPlatform
     {
         private readonly IDotnetCoreVersionProvider _versionProvider;
@@ -63,7 +59,7 @@ namespace Microsoft.Oryx.BuildScriptGenerator.DotNetCore
             string startupFileName = null;
             var projectFileContent = context.SourceRepo.ReadFile(projectFile);
             var projFileDoc = XDocument.Load(new StringReader(projectFileContent));
-            var assemblyNameElement = projFileDoc.XPathSelectElement("/Project/PropertyGroup/AssemblyName");
+            var assemblyNameElement = projFileDoc.XPathSelectElement(DotnetCoreConstants.AssemblyNameXPathExpression);
             if (assemblyNameElement == null)
             {
                 var name = Path.GetFileNameWithoutExtension(projectFile);

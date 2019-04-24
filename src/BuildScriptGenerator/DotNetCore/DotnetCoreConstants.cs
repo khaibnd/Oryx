@@ -25,5 +25,8 @@ namespace Microsoft.Oryx.BuildScriptGenerator.DotNetCore
 
         public const string ProjectFileLanguageDetectorProperty = "ProjectFile";
         public const string StartupFileName = "startupFileName";
+
+        public const string ProjectReferenceXPathExpression = "Project/ItemGroup/PackageReference";
+        public const string AssemblyNameXPathExpression = "/Project/PropertyGroup/AssemblyName";
     }
 }
