@@ -631,45 +631,5 @@ namespace Microsoft.Oryx.BuildImage.Tests
                 },
                 result.GetDebugInfo());
         }
-
-        [Fact]
-        public void Build_CleansDestinationDirectory_IfAskedForCleanupExplicitly()
-        {
-            // Arrange
-            var appName = "NetCoreApp21WebApp";
-            var volume = CreateSampleAppVolume(appName);
-            var appDir = volume.ContainerDir;
-            var appOutputDir = "/tmp/NetCoreApp21WebApp-output";
-            var extraFile = $"{Guid.NewGuid().ToString("N")}.txt";
-            var script = new ShellScriptBuilder()
-                .SetEnvironmentVariable(ScriptGenerator.EnvironmentSettingsKeys.CleanDestinationDirectory, "true")
-                .CreateDirectory($"{appOutputDir}")
-                .AddCommand($"echo > {appOutputDir}/{extraFile}")
-                .AddBuildCommand($"{appDir} -o {appOutputDir}")
-                .AddFileExistsCheck($"{appOutputDir}/{appName}.dll")
-                .AddFileDoesNotExistCheck($"{appOutputDir}/{extraFile}")
-                .ToString();
-
-            // Act
-            var result = _dockerCli.Run(
-                Settings.BuildImageName,
-                SampleAppsTestBase.CreateAppNameEnvVar(appName),
-                volume,
-                commandToExecuteOnRun: "/bin/bash",
-                commandArguments:
-                new[]
-                {
-                    "-c",
-                    script
-                });
-
-            // Assert
-            RunAsserts(
-                () =>
-                {
-                    Assert.True(result.IsSuccess);
-                },
-                result.GetDebugInfo());
-        }
     }
 }

@@ -53,7 +53,7 @@ func main() {
 
 	fullRunFromPath := ""
 	if *runFromPathPtr != "" {
-		// This path might not exist yet, so do not try to validate it yet.
+		// NOTE: This path might not exist, so do not try to validate it yet.
 		fullRunFromPath, _ = filepath.Abs(*runFromPathPtr)
 	}
 
@@ -75,7 +75,7 @@ func main() {
 		fmt.Println(
 			"Intermediate directory option was specified, so adding script to copy " +
 				"content to intermediate directory...")
-		common.AddScriptToCopyToDir(&scriptBuilder, fullAppPath, fullRunFromPath)
+		common.AppendScriptToCopyToDir(&scriptBuilder, fullAppPath, fullRunFromPath)
 	}
 
 	if fullRunFromPath == "" {
@@ -87,7 +87,7 @@ func main() {
 		fmt.Println(
 			"Read build manifest file and found output has been zipped, so adding " +
 				"script to extract it...")
-		common.AddScriptToExtractZippedOutput(&scriptBuilder, fullRunFromPath)
+		common.AppendScriptToExtractZippedOutput(&scriptBuilder, fullRunFromPath)
 	}
 
 	entrypointGenerator := DotnetCoreStartupScriptGenerator{

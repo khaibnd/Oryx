@@ -18,7 +18,5 @@ namespace Microsoft.Oryx.BuildScriptGenerator
         public const string Project = "PROJECT";
 
         public const string DisableCollectStatic = "DISABLE_COLLECTSTATIC";
-
-        public const string CleanDestinationDirectory = "CLEAN_DESTINATION_DIR";
     }
 }
