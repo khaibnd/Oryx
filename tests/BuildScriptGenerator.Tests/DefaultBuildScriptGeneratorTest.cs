@@ -150,6 +150,25 @@ namespace Microsoft.Oryx.BuildScriptGenerator.Tests
         }
 
         [Fact]
+        public void TryGenerateScript_Throws_IfLanguageIsProvided_AndCannotDetectLanguage()
+        {
+            // Arrange
+            var detector = new TestLanguageDetectorUsingLangName(
+                detectedLanguageName: null,
+                detectedLanguageVersion: null);
+            var platform = new TestProgrammingPlatform("test1", new[] { "1.0.0" }, detector: detector);
+            var generator = CreateDefaultScriptGenerator(platform);
+            var context = CreateScriptGeneratorContext(
+                suppliedLanguageName: "test2",
+                suppliedLanguageVersion: null);
+
+            // Act & Assert
+            var exception = Assert.Throws<UnsupportedLanguageException>(
+                () => generator.TryGenerateBashScript(context, out var generatedScript));
+            Assert.Equal("'test2' platform is not supported. Supported platforms are: test1", exception.Message);
+        }
+
+        [Fact]
         public void TryGenerateScript_Throws_IfLanguageIsProvidedButDisabled()
         {
             // Arrange
