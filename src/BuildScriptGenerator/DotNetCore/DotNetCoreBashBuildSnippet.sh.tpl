@@ -77,9 +77,6 @@ zippedOutputFileName=oryx_output.tar.gz
 {{ if ZipAllOutput }}
 ORIGINAL_DESTINATION_DIR="$DESTINATION_DIR"
 DESTINATION_DIR="$tmpDestinationPublishDir"
-
-# Clear the directory here so that pre-build script sees that change too
-clearDirectory "$tmpDestinationDir"
 {{ end }}
 
 # Export the variables so that pre and post build scripts can access them

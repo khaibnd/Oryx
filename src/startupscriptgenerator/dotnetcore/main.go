@@ -11,6 +11,7 @@ import (
 	"log"
 	"path/filepath"
 	"startupscriptgenerator/common"
+	"strings"
 )
 
 func main() {
@@ -19,8 +20,8 @@ func main() {
 	appPathPtr := flag.String(
 		"appPath",
 		".",
-		"The path to the published output of the application that is going to be run, e.g. '/home/site/wwwroot/'. " +
-		"Default is current directory.")
+		"The path to the published output of the application that is going to be run, e.g. '/home/site/wwwroot/'. "+
+			"Default is current directory.")
 	runFromPathPtr := flag.String(
 		"runFromPath",
 		"",
@@ -28,8 +29,8 @@ func main() {
 	sourcePathPtr := flag.String(
 		"sourcePath",
 		"",
-		"[Optional] The path to the application that is being deployed, " +
-		"Ex: '/home/site/repository/src/ShoppingWebApp/'.")
+		"[Optional] The path to the application that is being deployed, "+
+			"Ex: '/home/site/repository/src/ShoppingWebApp/'.")
 	bindPortPtr := flag.String("bindPort", "", "[Optional] Port where the application will bind to. Default is 8080")
 	userStartupCommandPtr := flag.String(
 		"userStartupCommand",
@@ -39,8 +40,8 @@ func main() {
 	defaultAppFilePathPtr := flag.String(
 		"defaultAppFilePath",
 		"",
-		"[Optional] Path to a default dll that will be executed if the entrypoint is not found. " +
-		"Ex: '/opt/startup/aspnetcoredefaultapp.dll'")
+		"[Optional] Path to a default dll that will be executed if the entrypoint is not found. "+
+			"Ex: '/opt/startup/aspnetcoredefaultapp.dll'")
 	flag.Parse()
 
 	fullAppPath := ""
@@ -52,6 +53,7 @@ func main() {
 
 	fullRunFromPath := ""
 	if *runFromPathPtr != "" {
+		// This path might not exist yet, so do not try to validate it yet.
 		fullRunFromPath, _ = filepath.Abs(*runFromPathPtr)
 	}
 
@@ -65,27 +67,40 @@ func main() {
 		fullDefaultAppFilePath = common.GetValidatedFullPath(*defaultAppFilePathPtr)
 	}
 
+	scriptBuilder := strings.Builder{}
+	scriptBuilder.WriteString("#!/bin/sh\n")
+	scriptBuilder.WriteString("set -e\n\n")
+
 	if fullRunFromPath != "" {
-		fmt.Println("Intermediate directory option was specified, so copying content...")
-		common.CopyToDir(fullAppPath, fullRunFromPath)
-		fullAppPath = fullRunFromPath
+		fmt.Println(
+			"Intermediate directory option was specified, so adding script to copy " +
+				"content to intermediate directory...")
+		common.AddScriptToCopyToDir(&scriptBuilder, fullAppPath, fullRunFromPath)
+	}
+
+	if fullRunFromPath == "" {
+		fullRunFromPath = fullAppPath
 	}
 
 	buildManifest := common.GetBuildManifest(fullAppPath)
 	if buildManifest.ZipAllOutput == "true" {
-		fmt.Println("Read build manifest file and found output has been zipped. Extracting it...")
-		common.ExtractZippedOutput(fullAppPath)
+		fmt.Println(
+			"Read build manifest file and found output has been zipped, so adding " +
+				"script to extract it...")
+		common.AddScriptToExtractZippedOutput(&scriptBuilder, fullRunFromPath)
 	}
 
 	entrypointGenerator := DotnetCoreStartupScriptGenerator{
-		SourcePath:          fullSourcePath,
-		AppPath:             fullAppPath,
-		BindPort:            *bindPortPtr,
-		UserStartupCommand:  *userStartupCommandPtr,
-		DefaultAppFilePath:  fullDefaultAppFilePath,
+		SourcePath:         fullSourcePath,
+		AppPath:            fullAppPath,
+		RunFromPath:        fullRunFromPath,
+		BindPort:           *bindPortPtr,
+		UserStartupCommand: *userStartupCommandPtr,
+		DefaultAppFilePath: fullDefaultAppFilePath,
+		Manifest:           buildManifest,
 	}
 
-	command := entrypointGenerator.GenerateEntrypointScript()
+	command := entrypointGenerator.GenerateEntrypointScript(&scriptBuilder)
 	if command == "" {
 		log.Fatal("Could not generate a startup script.")
 	}
